@@ -1,0 +1,250 @@
+<?php
+/**
+ * Vista detalle del proveedor
+ *
+ * @todo Hacer plugin del modal para bootstrap estilo plugins de JQuery
+ */
+
+/* @var $this Zend\View\Renderer\PhpRenderer */
+
+$entidad = $this->vars('entity');
+/* @var $entidad Transparente\Model\Entity\Proveedor */
+
+$this->headtitle('Proveedor: '.$entidad->getNombre());
+
+function dl($term, $value) {
+    if (!$value) $value = '--';
+    return <<< HTML
+<dt title="$term">$term</dt>
+<dd>$value</dd>
+HTML;
+
+}
+
+$this->layout()->setVariables([
+    'title'    => $entidad->getNombre(),
+    'subtitle' => 'datos abiertos de un proveedor del gobierno de Guatemala'
+]);
+
+?>
+<style>
+.dl-horizontal dt { width: 200px; }
+.dl-horizontal dd { margin-left: 210px;}
+#empleados-municipales,
+#proyectos
+    {height: 16em; overflow: auto}
+</style>
+<script>
+function openModal(id,title, body) {
+    $('body').append('<div class="modal fade" id="' + id + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"> \
+            <div class="modal-dialog"> \
+              <div class="modal-content"> \
+                <div class="modal-header"> \
+                  <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> \
+                  <h4 class="modal-title" id="myModalLabel">' + title + '</h4> \
+                </div> \
+                <div class="modal-body">' + body + '</div> \
+                <div class="modal-footer"> \
+                  <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button> \
+                </div> \
+              </div> \
+            </div> \
+          </div>\
+      ');
+}
+$(function() {
+    openModal('empleadosMunicipalesModal', '¿Porqué queremos ver los empleados municipales?',
+            '<iframe width="560" height="315" src="//www.youtube.com/embed/m-JozsD_IxQ?rel=0&end=50" frameborder="0" allowfullscreen></iframe>'
+            );
+});
+
+</script>
+
+<?=$this->partial('partial/dbcomprasdisclamer') ?>
+<center>
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- horizontal-content -->
+    <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-4234050867741816" data-ad-slot="1596749955"></ins>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</center>
+<div class="row">
+
+    <div class="col-md-6">
+        <dl class="dl-horizontal">
+            <dt>nombre<dt>
+            <dd>
+                <a title="abrir en Guatecompras" href="http://guatecompras.gt/proveedores/consultaDetProvee.aspx?rqp=8&lprv=<?=$entidad->getId()?>">
+                    <?=$entidad->getNombre()?>
+                </a>
+            </dd>
+            <?=dl('actualizado por SAT', $entidad->getUpdatedSat()->format('d/m/Y'))?>
+
+            <?php if (($nombresComerciales = $entidad->getNombresComerciales()) != false) : ?>
+                <dt>nombres comerciales<dt>
+                    <?php foreach($nombresComerciales as $nombreComercial) : /* @var $nombreComercial Transparente\Model\Entity\ProveedorNombreComercial */ ?>
+                    <dd><?=$nombreComercial->getNombre()?></dd>
+                    <?php endforeach ?>
+            <?php endif ?>
+
+            <dt>NIT<dt>
+            <dd><?=$entidad->getNit()?></dd>
+
+            <?php if (($domicilio = $entidad->getDomicilioFiscal()) != false) : /* @var $domicilio Transparente\Model\Entity\Domicilio */?>
+            <dt>domicilio fiscal<dt>
+            <dd>
+                <address>
+                    <?=$domicilio->getDireccion()?><br />
+                    <a href="<?=$this->url()?>municipio/detalles/<?=$domicilio->getMunicipio()->getId()?>">
+                        <?=$domicilio->getMunicipio()->getNombre()?></a>,
+                    <?=$domicilio->getMunicipio()->getDepartamento()->getNombre()?><br />
+                    <span class="glyphicon glyphicon-earphone"></span> tel: <?=$domicilio->getTelefonos()?><br />
+                    <span class="glyphicon glyphicon-print"></span>    fax: <?=$domicilio->getFax()?>
+                </address>
+            </dd>
+            <?php endif ?>
+
+            <?php if (($domicilio = $entidad->getDomicilioComercial()) != false) : /* @var $domicilio Transparente\Model\Entity\Domicilio */?>
+            <dt>domicilio comercial<dt>
+            <dd>
+                <address>
+                    <?=$domicilio->getDireccion()?><br />
+                    <a href="<?=$this->url()?>municipio/detalles/<?=$domicilio->getMunicipio()->getId()?>">
+                        <?=$domicilio->getMunicipio()->getNombre()?></a>,
+                    <?=$domicilio->getMunicipio()->getDepartamento()->getNombre()?><br />
+                    <span class="glyphicon glyphicon-earphone"></span> tel: <?=$domicilio->getTelefonos()?><br />
+                    <span class="glyphicon glyphicon-print"></span>    fax: <?=$domicilio->getFax()?>
+                </address>
+            </dd>
+            <?php endif ?>
+
+            <dt>e-mail<dt>
+            <dd><span class="glyphicon glyphicon-inbox"></span>
+                <?=implode('<br /><span class="glyphicon glyphicon-inbox"></span>', explode(',', $entidad->getEmail()))?>
+            </dd>
+
+            <? $fecha = ($entidad->getInscripciónFechaConstitución()) ? $entidad->getInscripciónFechaConstitución()->format('d/m/Y') : '--'?>
+            <dt>fecha de constitución<dt>
+            <dd><?=$fecha?></dd>
+
+            <? $fecha = ($entidad->getInscripciónFechaProvisional()) ? $entidad->getInscripciónFechaProvisional()->format('d/m/Y') : '--'?>
+            <dt>fecha inscripción provisional<dt>
+            <dd><?=$fecha?></dd>
+
+            <? $fecha = ($entidad->getInscripciónFechaDefinitiva()) ? $entidad->getInscripciónFechaDefinitiva()->format('d/m/Y') : '--'?>
+            <dt>fecha inscripción definitiva<dt>
+            <dd><?=$fecha?></dd>
+
+            <? $fecha = ($entidad->getInscripciónFechaSat()) ? $entidad->getInscripciónFechaSat()->format('d/m/Y') : '--'?>
+            <dt>fecha inscripción en la SAT<dt>
+            <dd><?=$fecha?></dd>
+
+            <dt>número de escritura<dt>
+            <dd><?=$entidad->getInscripciónNúmeroEscritura()?></dd>
+
+            <?=dl('principal actividad', $entidad->getPrincipalActividad())?>
+            <?=dl('principal trabajo',   $entidad->getPrincipalTrabajo())?>
+
+            <dt>status<dt>
+            <dd><?=$entidad->getStatus($human = true)?></dd>
+
+            <dt>tiene acceso al sistema<dt>
+            <dd><?=$entidad->getTieneAccesoSistema($human = true)?></dd>
+
+            <dt>tipo de organización<dt>
+            <dd><?=$entidad->getTipoOrganización()?></dd>
+
+            <dt>URL<dt>
+            <dd><a href="http://<?=$entidad->getUrl()?>"><?=$entidad->getUrl()?></a></dd>
+        </dl>
+    </div>
+
+    <div class="col-md-6">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">Publicidad</h3>
+            </div>
+            <div class="panel-body text-center">
+                <script type="text/javascript">
+                    google_ad_client = "ca-pub-4234050867741816";
+                    google_ad_slot = "7585811950";
+                    google_ad_width = 320;
+                    google_ad_height = 100;
+                </script>
+                <!-- proveedor-title -->
+                <script type="text/javascript"
+                src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+                </script>
+            </div>
+        </div>
+
+        <?php if ($entidad->getPagos()) :?>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Proyectos</h3>
+                </div>
+                <div class="panel-body">
+                    <p>Listado de <span class="badge"><?=number_format(count($entidad->getPagos()))?></span> proyectos adjudicados</p>
+                    <ul id="proyectos">
+                        <?php foreach ($entidad->getPagos() as $pago) :?>
+                            <li>
+                                <a href="<?=$this->url()?>proyecto/detalles/<?=$pago->getProyecto()->getId()?>">
+                                    <?=$pago->getProyecto()->getNombre()?>
+                                </a>
+                                (Q <?=number_format($pago->getMonto(), 2)?>)
+                            </li>
+                        <?php endforeach ?>
+                    </ul>
+                </div>
+            </div>
+        <?php endif ?>
+
+        <?php if (count($entidad->getRepresentantesLegales())) :?>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Representantes Legales</h3>
+            </div>
+            <div class="panel-body">
+                <ul>
+                    <?php foreach ($entidad->getRepresentantesLegales() as $repLegal) :?>
+                    <li>
+                        <a href="<?=$this->url()?>representante-legal/detalles/<?=$repLegal->getId()?>">
+                            <?=$repLegal->getNombre()?>
+                        </a>
+                    </li>
+                    <?php endforeach ?>
+                </ul>
+                <span class="small">actualizado en SAT: <?=$entidad->getRepLegalesUpdated()->format('d/m/Y')?></span>
+            </div>
+        </div>
+        <?php endif ?>
+
+        <?php if ($this->empleadosMunicipales) :?>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Empleados Municipales</h3>
+            </div>
+            <div class="panel-body">
+                <p>
+                    Listado de empleados municipales con apellidos simialres a algún representante legal del proveedor.
+                    <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#empleadosMunicipalesModal">
+                        <span class="glyphicon glyphicon-question-sign"></span>
+                    </button>
+                </p>
+                <ul id="empleados-municipales">
+                    <?php foreach ($this->empleadosMunicipales as  $empleadoMunicipal) : /* @var \Transparente\Model\Entity\EmpleadoMunicipal */?>
+                    <li>
+                        <?=$empleadoMunicipal->getNombre()?> <br />
+                        <?=$empleadoMunicipal->getCargo()?> de
+                        <a href="<?=$this->url()?>municipio/detalles/<?=$empleadoMunicipal->getMunicipio()->getId()?>">
+                            <?=$empleadoMunicipal->getMunicipio()->getNombre()?></a>,
+                        <?=$empleadoMunicipal->getMunicipio()->getDepartamento()->getNombre()?>.
+                    </li>
+                    <?php endforeach ?>
+                </ul>
+            </div>
+        </div>
+        <?php endif ?>
+    </div>
+</div>

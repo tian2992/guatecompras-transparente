@@ -1,0 +1,168 @@
+<?php
+/**
+ * Listar los proveedores
+ *
+ * @todo usar paginador para los proveedores
+ * @todo poder reordenar el listado
+ */
+
+/* @var $this Zend\View\Renderer\PhpRenderer */
+
+$entidad = $this->vars('entity');
+/* @var $entidad Transparente\Model\Entity\RepresentanteLegal */
+
+$this->headtitle('Representante Legal: '.$entidad->getNombre());
+
+function dl($term, $value) {
+    if (!$value) $value = '--';
+    return <<< HTML
+<dt title="$term">$term</dt>
+<dd>$value</dd>
+HTML;
+
+}
+?>
+<style>
+.dl-horizontal dt { width: 200px; }
+.dl-horizontal dd { margin-left: 210px;}
+</style>
+<h1><?=$entidad->getNombre()?> <small>(representante legal)</small></h1>
+
+
+<div class="row">
+
+    <div class="col-md-6">
+        <dl  class="dl-horizontal">
+            <dt>nombre<dt>
+            <dd>
+                <a title="abrir en Guatecompras" href="http://guatecompras.gt/proveedores/consultaDetProvee.aspx?rqp=8&lprv=<?=$entidad->getId()?>">
+                    <?=$entidad->getNombre()?>
+                </a>
+            </dd>
+
+            <?php if (($nombresComerciales = $entidad->getNombresComerciales()) != false) : ?>
+                <dt>nombres comerciales<dt>
+                    <?php foreach($nombresComerciales as $nombreComercial) : /* @var $nombreComercial Transparente\Model\Entity\RepresentanteLegalNombreComercial */ ?>
+                    <dd><?=$nombreComercial->getNombre()?></dd>
+                    <?php endforeach ?>
+            <?php endif ?>
+
+            <dt>NIT<dt>
+                <dd><?=$entidad->getNit()?></dd>
+
+            <?php if (($domicilio = $entidad->getDomicilioFiscal()) != false) : /* @var $domicilio Transparente\Model\Entity\Domicilio */?>
+            <dt>domicilio fiscal<dt>
+            <dd>
+                <address>
+                    <?=$domicilio->getDireccion()?><br />
+                    <a href="<?=$this->url()?>municipio/detalles/<?=$domicilio->getMunicipio()->getId()?>">
+                        <?=$domicilio->getMunicipio()->getNombre()?></a>,
+                    <?=$domicilio->getMunicipio()->getDepartamento()->getNombre()?><br />
+                    <span class="glyphicon glyphicon-earphone"></span> tel: <?=$domicilio->getTelefonos()?><br />
+                    <span class="glyphicon glyphicon-print"></span>    fax: <?=$domicilio->getFax()?>
+                </address>
+            </dd>
+            <?php endif ?>
+
+            <?php if (($domicilio = $entidad->getDomicilioComercial()) != false) : /* @var $domicilio Transparente\Model\Entity\Domicilio */?>
+            <dt>domicilio comercial<dt>
+            <dd>
+                <address>
+                    <?=$domicilio->getDireccion()?><br />
+                    <a href="<?=$this->url()?>municipio/detalles/<?=$domicilio->getMunicipio()->getId()?>">
+                        <?=$domicilio->getMunicipio()->getNombre()?></a>,
+                    <?=$domicilio->getMunicipio()->getDepartamento()->getNombre()?><br />
+                    <span class="glyphicon glyphicon-earphone"></span> tel: <?=$domicilio->getTelefonos()?><br />
+                    <span class="glyphicon glyphicon-print"></span>    fax: <?=$domicilio->getFax()?>
+                </address>
+            </dd>
+            <?php endif ?>
+
+            <dt>e-mail<dt>
+            <dd><span class="glyphicon glyphicon-inbox"></span>
+                <?=implode('<br /><span class="glyphicon glyphicon-inbox"></span>', explode(',', $entidad->getEmail()))?>
+            </dd>
+
+            <dt>status<dt>
+            <dd><?=$entidad->getStatus($human = true)?></dd>
+
+            <dt>tiene acceso al sistema<dt>
+            <dd><?=$entidad->getTieneAccesoSistema($human = true)?></dd>
+
+            <dt>URL<dt>
+            <dd><a href="http://<?=$entidad->getUrl()?>"><?=$entidad->getUrl()?></a></dd>
+        </dl>
+    </div>
+
+    <div class="col-md-6">
+
+
+        <?php if ($entidad->getProveedores()) :?>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Proveedores</h3>
+            </div>
+            <div class="panel-body">
+                <p><?=$entidad->getNombre()?> es representante legal de las siguientes empresas proveedoras</p>
+                <ul>
+                    <?php foreach ($entidad->getProveedores() as $proveedor) :?>
+                    <li>
+                        <a href="<?=$this->url()?>proveedores/detalles/<?=$proveedor->getId()?>">
+                            <?=$proveedor->getNombre()?>
+                        </a>
+                    </li>
+                    <?php endforeach ?>
+                </ul>
+            </div>
+        </div>
+        <?php endif ?>
+
+        <?php if (count($entidad->getRepresentantesLegales())) :?>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Representantes Legales</h3>
+            </div>
+            <div class="panel-body">
+                <ul>
+                    <?php foreach ($entidad->getRepresentantesLegales() as $repLegal) :?>
+                    <li>
+                        <a href="<?=$this->url()?>representante-legal/detalles/<?=$repLegal->getId()?>">
+                            <?=$repLegal->getNombre()?>
+                        </a>
+                    </li>
+                    <?php endforeach ?>
+                </ul>
+                <span class="small">actualizado en SAT: <?=$entidad->getUpdatedSat()->format('d/m/Y')?></span>
+            </div>
+        </div>
+        <?php endif ?>
+
+        <?php if ($this->empleadosMunicipales) :?>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Empleados Municipales</h3>
+            </div>
+            <div class="panel-body">
+                <p>
+                    Listado de empleados municipales con apellidos simialres a algún representante legal del proveedor.
+                    <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#empleadosMunicipalesModal">
+                        <span class="glyphicon glyphicon-question-sign"></span>
+                    </button>
+                </p>
+                <ul id="empleados-municipales">
+                    <?php foreach ($this->empleadosMunicipales as  $empleadoMunicipal) : /* @var \Transparente\Model\Entity\EmpleadoMunicipal */?>
+                    <li>
+                        <?=$empleadoMunicipal->getNombre()?> <br />
+                        <?=$empleadoMunicipal->getCargo()?> de
+                        <a href="<?=$this->url()?>municipio/detalles/<?=$empleadoMunicipal->getMunicipio()->getId()?>">
+                            <?=$empleadoMunicipal->getMunicipio()->getNombre()?></a>,
+                        <?=$empleadoMunicipal->getMunicipio()->getDepartamento()->getNombre()?>.
+                    </li>
+                    <?php endforeach ?>
+                </ul>
+            </div>
+        </div>
+        <?php endif ?>
+    </div>
+
+</div>
